@@ -124,6 +124,26 @@ export default class EmojiSelector extends Component {
     colSize: 0
   }
 
+  scrollToOffset (options) {
+    this.scrollview && this.scrollview.scrollToOffset({x: 0, y: 0, animated: false});
+  }
+
+  shouldComponentUpdate (nextProps, nextState) {
+      const { searchQuery, category, isReady, history, emojiList, colSize } = nextState
+      if (
+        this.state.searchQuery === searchQuery
+        && this.state.category === category
+        && this.state.isReady === isReady
+        && this.state.history === history
+        && this.state.emojiList === emojiList
+        && this.state.colSize === colSize
+        ) {
+          return false
+      } else {
+        return true
+      }
+  }
+
   //
   //  HANDLER METHODS
   //
@@ -259,12 +279,18 @@ export default class EmojiSelector extends Component {
     }      
     
     this.prerenderEmojis(() => {
-      this.setState({ isReady: true })
+      this.setState({ isReady: true }, () => {
+        const { emojiLoadEnd } = this.props
+        emojiLoadEnd && emojiLoadEnd()
+      })
     });
   }
 
+  scrollToOffset
+
   render() {
     const {
+      style,
       theme,
       columns,
       placeholder,
@@ -281,7 +307,6 @@ export default class EmojiSelector extends Component {
       isReady,
       searchQuery
     } = this.state;
-
     const Searchbar = (
       <View style={styles.searchbar_container}>
         <TextInput
@@ -300,7 +325,7 @@ export default class EmojiSelector extends Component {
     const title = searchQuery !== '' ? 'Search Results' : category.name;
 
     return (
-      <View style={styles.frame} {...other}>
+      <View style={[styles.frame]} {...other}>
         <View style={styles.tabBar}>
           { showTabs && (
             <TabBar 
@@ -350,6 +375,8 @@ EmojiSelector.propTypes = {
       PropTypes.object
   ]),
   
+  style: PropTypes.object,
+
   /** Placeholder of search input */
   placeholder: PropTypes.string,
 
@@ -420,9 +447,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   sectionHeader: {
-    margin: 8,
+    margin: 1,
+    height: 0,
     fontSize: 17,
     width: '100%',
     color: '#8F8F8F'
-  }
+  },
 });
